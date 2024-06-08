@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	_ "modernc.org/sqlite"
@@ -34,9 +35,7 @@ func getTestParcel() Parcel {
 func TestAddGetDelete(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
 
 	// настройте подключение к БД
@@ -55,16 +54,16 @@ func TestAddGetDelete(t *testing.T) {
 	row, err := store.Get(id)
 	parcel.Number = row.Number
 	require.NoError(t, err)
-	require.Equal(t, parcel, row)
+	assert.Equal(t, parcel, row)
 
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
 	// проверьте, что посылку больше нельзя получить из БД
 	err = store.Delete(id)
 	require.NoError(t, err)
-	row, err = store.Get(id)
-	require.Error(t, err)
-	require.Empty(t, row)
+	_, err = store.Get(id)
+	assert.ErrorIs(t, err, sql.ErrNoRows)
+
 }
 
 // TestSetAddress проверяет обновление адреса
